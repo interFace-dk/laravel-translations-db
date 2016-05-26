@@ -19,18 +19,20 @@ class TranslationsController extends Controller {
         return view('translation::index');
     }
 
-    public function getGroups() {
+    public function getGroups(Request $request) {
         return \DB::table('translations')
             ->select('group')
             ->distinct()
+            ->where('domain_id', '=', $request->get('domain', 0))
             ->orderBy('group')
             ->lists('group');
     }
 
-    public function getLocales() {
+    public function getLocales(Request $request) {
         return \DB::table('translations')
             ->select('locale')
             ->distinct()
+            ->where('domain_id', '=', $request->get('domain', 0))
             ->orderBy('locale')
             ->lists('locale');
     }
@@ -42,12 +44,14 @@ class TranslationsController extends Controller {
             ->select('name', 'value')
             ->where('locale', $request->get('locale'))
             ->where('group', $request->get('group'))
+            ->where('domain_id', '=', $request->get('domain', 0))
             ->orderBy('name')
             ->get();
         $new = \DB::table('translations')
             ->select('name', 'value')
             ->where('locale', strtolower($request->get('translate')))
             ->where('group', $request->get('group'))
+            ->where('domain_id', '=', $request->get('domain', 0))
             ->orderBy('name')
             ->lists('value', 'name');
 
@@ -67,6 +71,7 @@ class TranslationsController extends Controller {
         $item = \DB::table('translations')
             ->where('locale', strtolower($request->get('locale')))
             ->where('group', $request->get('group'))
+            ->where('domain_id', '=', $request->get('domain', 0))
             ->where('name', $request->get('name'))->first();
 
         $data = [
@@ -101,7 +106,8 @@ class TranslationsController extends Controller {
     public function postDelete(Request $request)
     {
         \DB::table('translations')
-            ->where('name', strtolower($request->get('name')))->delete();
+            ->where('name', strtolower($request->get('name')))
+            ->where('domain_id', '=', $request->get('domain', 0))->delete();
         return 'OK';
     }
 }

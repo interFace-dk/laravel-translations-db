@@ -15,6 +15,7 @@ class AddTranslationsTable extends Migration {
 		Schema::create('translations', function(Blueprint $table)
 		{
 			$table->increments('id');
+			$table->integer('domain_id')->default(0);
 			$table->string('locale');
 			$table->string('group');
 			$table->string('name');

@@ -126,7 +126,9 @@ class ServiceProvider extends \Illuminate\Translation\TranslationServiceProvider
 	{
 		$this->app->singleton('translation.database', function($app)
 		{
-			return new DatabaseLoader($app, $app['config']->get('translation-db.get_domain'));
+			$id = $app['config']->get('translation-db.get_domain');
+			$domain_id = (is_int($id)) ? $id : $id(); //either integer or function...
+			return new DatabaseLoader($app, $domain_id);
 		});
 	}
 

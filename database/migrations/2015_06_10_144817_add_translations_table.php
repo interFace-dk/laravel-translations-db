@@ -16,14 +16,15 @@ class AddTranslationsTable extends Migration {
 		{
 			$table->increments('id');
 			$table->string('locale');
+			$table->integer('domain_id')->default(0)->nullable();
 			$table->string('group');
 			$table->string('name');
 			$table->text('value')->nullable();
 			$table->timestamp('viewed_at')->nullable();
 			$table->timestamps();
 
-			$table->index(['locale', 'group']);
-			$table->unique(['locale', 'group', 'name']);
+			$table->index(['locale', 'group', 'name']);
+			$table->unique(['locale', 'group', 'name', 'domain_id']);
 		});
 	}
 

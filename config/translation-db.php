@@ -48,6 +48,7 @@ return [
 
     /**
      * Get the domain id
+     * User either integer or function calls
      */
 
     'get_domain' => function() { return 0;}

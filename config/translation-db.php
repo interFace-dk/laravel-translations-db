@@ -44,7 +44,12 @@ return [
      * Middleware authentication
      */
 
-    'middleware' => []
+    'middleware' => [],
 
+    /**
+     * Get the domain id
+     */
+
+    'get_domain' => function() { return 0;}
 
 ];

@@ -64,12 +64,12 @@ class ServiceProvider extends \Illuminate\Translation\TranslationServiceProvider
 		// Only in debug mode the translations interface should be available.
 		if($this->app['config']->get('app.debug') && $this->app['config']->get('translation-db.api')) {
 			$routeConfig = [
+				'namespace' => 'Hpolthof\Translation\Controllers',
 				'prefix' => $this->app['config']->get('translation-db.route_prefix'),
 				'middleware' => $this->app['config']->get('translation-db.middleware')
 			];
 
 			if ($this->app['config']->get('translation-db.webinterface')) {
-				$routeConfig['namespace'] = 'Hpolthof\Translation\Controllers';
 				$this->app['router']->group($routeConfig, function ($router) {
 					$router->get('/', [
 						'uses' => 'TranslationsController@getIndex',
@@ -78,32 +78,32 @@ class ServiceProvider extends \Illuminate\Translation\TranslationServiceProvider
 				});
 			}
 
-				$this->app['router']->group($routeConfig, function ($router) {
-					$router->get('/groups', [
-						'uses' => 'TranslationsController@getGroups',
-						'as' => 'translations.groups',
-					]);
-					$router->get('/locales', [
-						'uses' => 'TranslationsController@getLocales',
-						'as' => 'translations.locales',
-					]);
-					$router->post('/items', [
-						'uses' => 'TranslationsController@postItems',
-						'as' => 'translations.items',
-					]);
-					$router->post('/store', [
-						'uses' => 'TranslationsController@postStore',
-						'as' => 'translations.store',
-					]);
-					$router->post('/translate', [
-						'uses' => 'TranslationsController@postTranslate',
-						'as' => 'translations.translate',
-					]);
-					$router->post('/delete', [
-						'uses' => 'TranslationsController@postDelete',
-						'as' => 'translations.delete',
-					]);
-				});
+			$this->app['router']->group($routeConfig, function ($router) {
+				$router->get('/groups', [
+					'uses' => 'TranslationsController@getGroups',
+					'as' => 'translations.groups',
+				]);
+				$router->get('/locales', [
+					'uses' => 'TranslationsController@getLocales',
+					'as' => 'translations.locales',
+				]);
+				$router->post('/items', [
+					'uses' => 'TranslationsController@postItems',
+					'as' => 'translations.items',
+				]);
+				$router->post('/store', [
+					'uses' => 'TranslationsController@postStore',
+					'as' => 'translations.store',
+				]);
+				$router->post('/translate', [
+					'uses' => 'TranslationsController@postTranslate',
+					'as' => 'translations.translate',
+				]);
+				$router->post('/delete', [
+					'uses' => 'TranslationsController@postDelete',
+					'as' => 'translations.delete',
+				]);
+			});
 
 		}
 

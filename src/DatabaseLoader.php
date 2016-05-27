@@ -5,11 +5,12 @@ use Illuminate\Translation\LoaderInterface;
 
 class DatabaseLoader implements LoaderInterface {
 
-    protected $_app = null;
+    protected $_app = null, $domain_id;
 
-    public function __construct(Application $app)
+    public function __construct(Application $app, $domain_id)
     {
         $this->_app = $app;
+        $this->domain_id = $domain_id;
     }
 
     /**
@@ -20,12 +21,12 @@ class DatabaseLoader implements LoaderInterface {
      * @param  string  $namespace
      * @return array
      */
-    public function load($locale, $group, $domain_id, $namespace = null)
+    public function load($locale, $group, $namespace = null)
     {
         return \DB::table('translations')
             ->where('locale', $locale)
             ->where('group', $group)
-            ->where('domain_id', $domain_id)
+            ->where('domain_id', $this->domain_id)
             ->lists('value', 'name');
     }
 
@@ -51,8 +52,9 @@ class DatabaseLoader implements LoaderInterface {
      * @param string $name
      * @return void
      */
-    public function addTranslation($locale, $group, $key, $domain_id)
+    public function addTranslation($locale, $group, $key)
     {
+        $domain_id = $this->domain_id;
         if(!\Config::get('app.debug') || \Config::get('translation-db.minimal')) return;
 
         // Extract the real key from the translation.
@@ -65,7 +67,7 @@ class DatabaseLoader implements LoaderInterface {
         $item = \DB::table('translations')
             ->where('locale', $locale)
             ->where('group', $group)
-            ->where('domain_id', $domain_id)
+            ->where('domain_id', $this->domain_id)
             ->where('name', $name)->first();
 
         $data = compact('locale', 'group', 'name', 'domain_id');

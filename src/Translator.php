@@ -6,13 +6,12 @@ use Symfony\Component\Translation\TranslatorInterface;
 
 class Translator extends \Illuminate\Translation\Translator implements TranslatorInterface {
 
-	protected $app = null, $domain_id = 0;
+	protected $app = null;
 
-	public function __construct(LoaderInterface $database, LoaderInterface $loader, $locale, Application $app, $domain_id)
+	public function __construct(LoaderInterface $database, LoaderInterface $loader, $locale, Application $app)
 	{
 		$this->database = $database;
 		$this->app = $app;
-		$this->domain_id = $domain_id;
 		parent::__construct($loader, $locale);
 	}
 
@@ -41,7 +40,7 @@ class Translator extends \Illuminate\Translation\Translator implements Translato
 		{
 			if(!self::isNamespaced($namespace)) {
 				// Database stuff
-				$this->database->addTranslation($locale, $group, $key, $this->domain_id);
+				$this->database->addTranslation($locale, $group, $key);
 			}
 
 			$this->load($namespace, $group, $locale);
@@ -73,13 +72,13 @@ class Translator extends \Illuminate\Translation\Translator implements Translato
 			if(!\Config::get('app.debug') || \Config::get('translation-db.minimal')) {
 				$that = $this;
 				$lines = \Cache::rememberForever('__translations.'.$locale.'.'.$group, function() use ($that, $locale, $group, $namespace) {
-					return $this->database->load($locale, $group, $this->domain_id, $namespace);
+					return $this->database->load($locale, $group, $namespace);
 				});
 			} else {
-				$lines = $this->database->load($locale, $group, $this->domain_id, $namespace);
+				$lines = $this->database->load($locale, $group, $namespace);
 			}
 		} else {
-			$lines = $this->loader->load($locale, $group, $this->domain_id, $namespace);
+			$lines = $this->loader->load($locale, $group, $namespace);
 		}
 		$this->loaded[$namespace][$group][$locale] = $lines;
 	}

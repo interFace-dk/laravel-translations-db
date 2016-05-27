@@ -34,14 +34,13 @@ class ServiceProvider extends \Illuminate\Translation\TranslationServiceProvider
 		{
 			$loader = $app['translation.loader'];
 			$database = $app['translation.database'];
-			$domain_id = $app['config']->get('translation-db.get_domain');
 
 			// When registering the translator component, we'll need to set the default
 			// locale as well as the fallback locale. So, we'll grab the application
 			// configuration so we can easily get both of these values from there.
 			$locale = $app['config']['app.locale'];
 
-			$trans = new Translator($database, $loader, $locale, $app, $domain_id);
+			$trans = new Translator($database, $loader, $locale, $app);
 
 			$trans->setFallback($app['config']['app.fallback_locale']);
 
@@ -127,7 +126,7 @@ class ServiceProvider extends \Illuminate\Translation\TranslationServiceProvider
 	{
 		$this->app->singleton('translation.database', function($app)
 		{
-			return new DatabaseLoader($app);
+			return new DatabaseLoader($app, $app['config']->get('translation-db.get_domain'));
 		});
 	}
 

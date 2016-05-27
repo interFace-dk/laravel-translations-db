@@ -13,13 +13,20 @@ adding your keys to the translations file, automatic translation with **Google T
 
 ## Installation
 
+Add to repositories in _package.json_
+
+"repositories": [
+		{
+			"type": "vcs",
+			"url": "https://github.com/interFace-dk/laravel-translations-db"
+		}
+	],
+
 Require this package with composer:
 
 ```
-composer require hpolthof/laravel-translation-db
+composer require interface-dk/hpolthof/laravel-translations-db
 ```
-> Like to live on the edge?
-> Use: ```composer require 'hpolthof/laravel-translations-db:*@dev'```
 
 After updating composer, we'll have to replace the TranslationServiceProvider the our ServiceProvider in config/app.php.
 

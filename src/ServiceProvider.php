@@ -59,7 +59,7 @@ class ServiceProvider extends \Illuminate\Translation\TranslationServiceProvider
 			__DIR__.'/../config/translation-db.php' => config_path('translation-db.php'),
 		]);
 
-		$this->loadViewsFrom(__DIR__.'/../views', 'translation');
+
 		$this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'translation');
 		// Only in debug mode the translations interface should be available.
 		if($this->app['config']->get('app.debug') && $this->app['config']->get('translation-db.api')) {
@@ -70,6 +70,7 @@ class ServiceProvider extends \Illuminate\Translation\TranslationServiceProvider
 			];
 
 			if ($this->app['config']->get('translation-db.webinterface')) {
+				$this->loadViewsFrom(__DIR__.'/../views', 'translation');
 				$this->app['router']->group($routeConfig, function ($router) {
 					$router->get('/', [
 						'uses' => 'TranslationsController@getIndex',

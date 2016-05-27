@@ -20,11 +20,12 @@ class DatabaseLoader implements LoaderInterface {
      * @param  string  $namespace
      * @return array
      */
-    public function load($locale, $group, $namespace = null)
+    public function load($locale, $group, $domain_id = 0, $namespace = null)
     {
         return \DB::table('translations')
             ->where('locale', $locale)
             ->where('group', $group)
+            ->where('domain_id', $domain_id)
             ->lists('value', 'name');
     }
 
@@ -50,7 +51,7 @@ class DatabaseLoader implements LoaderInterface {
      * @param string $name
      * @return void
      */
-    public function addTranslation($locale, $group, $key)
+    public function addTranslation($locale, $group, $key, $domain_id = 0)
     {
         if(!\Config::get('app.debug') || \Config::get('translation-db.minimal')) return;
 
@@ -64,9 +65,10 @@ class DatabaseLoader implements LoaderInterface {
         $item = \DB::table('translations')
             ->where('locale', $locale)
             ->where('group', $group)
+            ->where('domain_id', $domain_id)
             ->where('name', $name)->first();
 
-        $data = compact('locale', 'group', 'name');
+        $data = compact('locale', 'group', 'name', 'domain_id');
         $data = array_merge($data, [
             'viewed_at' => date_create(),
             'updated_at' => date_create(),

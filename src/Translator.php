@@ -26,10 +26,11 @@ class Translator extends \Illuminate\Translation\Translator implements Translato
 	 * @param  string  $key
 	 * @param  array   $replace
 	 * @param  string  $locale
+	 * @param  string  $domain_id
 	 * @param  bool	   $fallback
 	 * @return string
 	 */
-	public function get($key, array $replace = array(), $locale = null, $fallback = true)
+	public function get($key, array $replace = array(), $locale = null, $domain_id = 0, $fallback = true)
 	{
 		list($namespace, $group, $item) = $this->parseKey($key);
 
@@ -40,7 +41,7 @@ class Translator extends \Illuminate\Translation\Translator implements Translato
 		{
 			if(!self::isNamespaced($namespace)) {
 				// Database stuff
-				$this->database->addTranslation($locale, $group, $key);
+				$this->database->addTranslation($locale, $group, $key, $domain_id);
 			}
 
 			$this->load($namespace, $group, $locale);

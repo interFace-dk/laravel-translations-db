@@ -6,12 +6,12 @@ use Illuminate\Routing\Controller;
 use Stichoza\GoogleTranslate\TranslateClient;
 
 class TranslationsController extends Controller {
-
+    protected $app;
     public function __construct() {
         // Disable the Laravel Debugbar
-        $app = app();
-        if($app->offsetExists('debugbar') && $app['config']->get('translation-db.disable_debugbar')) {
-            $app['debugbar']->disable();
+        $this->app = app();
+        if($this->app->offsetExists('debugbar') && $this->app['config']->get('translation-db.disable_debugbar')) {
+            $this->app['debugbar']->disable();
         }
     }
 
@@ -19,39 +19,35 @@ class TranslationsController extends Controller {
         return view('translation::index');
     }
 
-    public function getGroups(Request $request) {
+    public function getGroups() {
         return \DB::table('translations')
             ->select('group')
             ->distinct()
-            ->where('domain_id', '=', $request->get('domain', 0))
             ->orderBy('group')
             ->lists('group');
     }
 
-    public function getLocales(Request $request) {
+    public function getLocales() {
         return \DB::table('translations')
             ->select('locale')
             ->distinct()
-            ->where('domain_id', '=', $request->get('domain', 0))
             ->orderBy('locale')
             ->lists('locale');
     }
 
     public function postItems(Request $request) {
-        if(strlen($request->get('translate')) == 0) throw new TranslationException();
+        if(strlen($request->get('translate')) == 0) throw new TranslationException('We need to know what to translate it to');
 
         $base = \DB::table('translations')
             ->select('name', 'value')
             ->where('locale', $request->get('locale'))
             ->where('group', $request->get('group'))
-            ->where('domain_id', '=', $request->get('domain', 0))
             ->orderBy('name')
             ->get();
         $new = \DB::table('translations')
             ->select('name', 'value')
             ->where('locale', strtolower($request->get('translate')))
             ->where('group', $request->get('group'))
-            ->where('domain_id', '=', $request->get('domain', 0))
             ->orderBy('name')
             ->lists('value', 'name');
 
@@ -71,7 +67,6 @@ class TranslationsController extends Controller {
         $item = \DB::table('translations')
             ->where('locale', strtolower($request->get('locale')))
             ->where('group', $request->get('group'))
-            ->where('domain_id', '=', $request->get('domain', 0))
             ->where('name', $request->get('name'))->first();
 
         $data = [
@@ -106,8 +101,7 @@ class TranslationsController extends Controller {
     public function postDelete(Request $request)
     {
         \DB::table('translations')
-            ->where('name', strtolower($request->get('name')))
-            ->where('domain_id', '=', $request->get('domain', 0))->delete();
+            ->where('name', strtolower($request->get('name')))->delete();
         return 'OK';
     }
 }

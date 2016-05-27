@@ -8,6 +8,11 @@ return [
     'update_viewed_at' => true,
 
     /**
+     * This setting enables or disables only the api
+     */
+    'api' => true,
+
+    /**
      * This setting enables or disables the web interface and its routes.
      */
     'webinterface' => true,
@@ -16,7 +21,7 @@ return [
      * This is the prefix for on which URI the Translations Manager will
      * be available. You can leave it just as is in most cases.
      */
-    'route_prefix' => '_translations',
+    'route_prefix' => 'translations',
 
     /**
      * If your using the Laravel Debugbar provided by Barryvdh\Debugbar
@@ -34,4 +39,12 @@ return [
      * happening.
      */
     'minimal' => false,
+
+    /**
+     * Middleware authentication
+     */
+
+    'middleware' => []
+
+
 ];

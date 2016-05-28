@@ -22,6 +22,7 @@ class TranslationsController extends Controller {
     public function getGroups() {
         return \DB::table('translations')
             ->select('group')
+            ->where('domain_id', $this->app['config']->get('translation-db.get_domain'))
             ->distinct()
             ->orderBy('group')
             ->lists('group');
@@ -30,6 +31,7 @@ class TranslationsController extends Controller {
     public function getLocales() {
         return \DB::table('translations')
             ->select('locale')
+            ->where('domain_id', $this->app['config']->get('translation-db.get_domain'))
             ->distinct()
             ->orderBy('locale')
             ->lists('locale');
@@ -42,12 +44,14 @@ class TranslationsController extends Controller {
             ->select('name', 'value')
             ->where('locale', $request->get('locale'))
             ->where('group', $request->get('group'))
+            ->where('domain_id', $this->app['config']->get('translation-db.get_domain'))
             ->orderBy('name')
             ->get();
         $new = \DB::table('translations')
             ->select('name', 'value')
             ->where('locale', strtolower($request->get('translate')))
             ->where('group', $request->get('group'))
+            ->where('domain_id', $this->app['config']->get('translation-db.get_domain'))
             ->orderBy('name')
             ->lists('value', 'name');
 
@@ -74,6 +78,7 @@ class TranslationsController extends Controller {
             'group' => $request->get('group'),
             'name' => $request->get('name'),
             'value' => $request->get('value'),
+            'domain_id' => $this->app['config']->get('translation-db.get_domain'),
             'updated_at' => date_create(),
         ];
 
@@ -101,7 +106,8 @@ class TranslationsController extends Controller {
     public function postDelete(Request $request)
     {
         \DB::table('translations')
-            ->where('name', strtolower($request->get('name')))->delete();
+            ->where('name', strtolower($request->get('name')))
+            ->where('domain_id', $this->app['config']->get('translation-db.get_domain'))->delete();
         return 'OK';
     }
 }

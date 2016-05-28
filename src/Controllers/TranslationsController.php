@@ -6,10 +6,14 @@ use Illuminate\Routing\Controller;
 use Stichoza\GoogleTranslate\TranslateClient;
 
 class TranslationsController extends Controller {
-    protected $app;
+    protected $app, $domain_id;
     public function __construct() {
         // Disable the Laravel Debugbar
         $this->app = app();
+
+        $id = $this->app['config']->get('translation-db.get_domain');
+        $this->domain_id = (is_int($id)) ? $id : $id(); //either integer or function...
+
         if($this->app->offsetExists('debugbar') && $this->app['config']->get('translation-db.disable_debugbar')) {
             $this->app['debugbar']->disable();
         }
@@ -22,7 +26,7 @@ class TranslationsController extends Controller {
     public function getGroups() {
         return \DB::table('translations')
             ->select('group')
-            ->where('domain_id', $this->app['config']->get('translation-db.get_domain'))
+            ->where('domain_id', $this->domain_id)
             ->distinct()
             ->orderBy('group')
             ->lists('group');
@@ -31,7 +35,7 @@ class TranslationsController extends Controller {
     public function getLocales() {
         return \DB::table('translations')
             ->select('locale')
-            ->where('domain_id', $this->app['config']->get('translation-db.get_domain'))
+            ->where('domain_id', $this->domain_id)
             ->distinct()
             ->orderBy('locale')
             ->lists('locale');
@@ -44,14 +48,14 @@ class TranslationsController extends Controller {
             ->select('name', 'value')
             ->where('locale', $request->get('locale'))
             ->where('group', $request->get('group'))
-            ->where('domain_id', $this->app['config']->get('translation-db.get_domain'))
+            ->where('domain_id', $this->domain_id)
             ->orderBy('name')
             ->get();
         $new = \DB::table('translations')
             ->select('name', 'value')
             ->where('locale', strtolower($request->get('translate')))
             ->where('group', $request->get('group'))
-            ->where('domain_id', $this->app['config']->get('translation-db.get_domain'))
+            ->where('domain_id', $this->domain_id)
             ->orderBy('name')
             ->lists('value', 'name');
 
@@ -71,6 +75,7 @@ class TranslationsController extends Controller {
         $item = \DB::table('translations')
             ->where('locale', strtolower($request->get('locale')))
             ->where('group', $request->get('group'))
+            ->where('domain_id', $this->domain_id)
             ->where('name', $request->get('name'))->first();
 
         $data = [
@@ -78,7 +83,7 @@ class TranslationsController extends Controller {
             'group' => $request->get('group'),
             'name' => $request->get('name'),
             'value' => $request->get('value'),
-            'domain_id' => $this->app['config']->get('translation-db.get_domain'),
+            'domain_id' => $this->domain_id,
             'updated_at' => date_create(),
         ];
 
@@ -107,7 +112,7 @@ class TranslationsController extends Controller {
     {
         \DB::table('translations')
             ->where('name', strtolower($request->get('name')))
-            ->where('domain_id', $this->app['config']->get('translation-db.get_domain'))->delete();
+            ->where('domain_id', $this->domain_id)->delete();
         return 'OK';
     }
 }

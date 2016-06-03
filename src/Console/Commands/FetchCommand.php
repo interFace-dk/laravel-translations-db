@@ -26,8 +26,7 @@ class FetchCommand extends Command {
     protected $lang_path = null;
     protected $locales = null;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->lang_path = base_path().'/resources/lang';
         parent::__construct();
     }
@@ -38,8 +37,7 @@ class FetchCommand extends Command {
      *
      * @return mixed
      */
-    public function fire()
-    {
+    public function fire() {
         if(!$this->validate()) return false;
 
         $locales = $this->usableLocales();
@@ -80,8 +78,7 @@ class FetchCommand extends Command {
      *
      * @return array
      */
-    protected function getArguments()
-    {
+    protected function getArguments() {
         return [];
     }
 
@@ -90,8 +87,7 @@ class FetchCommand extends Command {
      *
      * @return array
      */
-    protected function getOptions()
-    {
+    protected function getOptions() {
         return [
             ['locale', 'l', InputOption::VALUE_OPTIONAL, 'Specify a locale.', null],
             ['group', 'g', InputOption::VALUE_OPTIONAL, 'Specify a group.', null],
@@ -101,8 +97,7 @@ class FetchCommand extends Command {
     /**
      * @return array|null
      */
-    protected function getLocales()
-    {
+    protected function getLocales() {
         if ($this->locales === null) {
             $locales = \File::directories($this->lang_path);
             $this->locales = array_map([$this, 'cleanLocaleDir'], $locales);
@@ -115,8 +110,7 @@ class FetchCommand extends Command {
      * @param $locale
      * @return bool
      */
-    protected function hasLocale($locale)
-    {
+    protected function hasLocale($locale) {
         $result = false;
         if (array_search($locale, $this->getLocales()) !== FALSE) {
             $result = true;
@@ -124,8 +118,7 @@ class FetchCommand extends Command {
         return $result;
     }
 
-    protected function hasGroup($locale, $group)
-    {
+    protected function hasGroup($locale, $group) {
         $result = false;
         $file = $this->lang_path."/{$locale}/{$group}.php";
         if(\File::exists($file)) {
@@ -137,8 +130,7 @@ class FetchCommand extends Command {
     /**
      * @return array|null
      */
-    protected function getGroups($locale)
-    {
+    protected function getGroups($locale) {
         $path = $this->lang_path."/{$locale}";
         $groups = \File::files($path);
         foreach($groups as &$group) {
@@ -151,8 +143,7 @@ class FetchCommand extends Command {
      * @param $locale
      * @param $group
      */
-    protected function validateGroup($locale, $group)
-    {
+    protected function validateGroup($locale, $group) {
         if (!$this->hasGroup($locale, $group)) {
             $this->error("The file '{$group}.php' was not found within locale '{$locale}'.");
         }
@@ -161,8 +152,7 @@ class FetchCommand extends Command {
     /**
      * @return bool
      */
-    protected function validate()
-    {
+    protected function validate() {
         $locale = $this->option('locale');
         if ($locale !== null) {
             if (!$this->hasLocale($locale)) {
@@ -185,8 +175,7 @@ class FetchCommand extends Command {
     /**
      * @return array|null
      */
-    protected function usableLocales()
-    {
+    protected function usableLocales() {
         $locales = [];
         if ($this->option('locale') !== null) {
             $locales[] = $this->option('locale');
@@ -201,8 +190,7 @@ class FetchCommand extends Command {
      * @param $locale
      * @return array|null
      */
-    protected function usableGroups($locale)
-    {
+    protected function usableGroups($locale) {
         $groups = [];
         if ($this->option('group') !== null) {
             $groups[] = $this->option('group');
@@ -221,8 +209,7 @@ class FetchCommand extends Command {
      * @param $updated
      * @return array
      */
-    protected function storeTranslation($locale, $group, $name, $value, $inserted, $updated)
-    {
+    protected function storeTranslation($locale, $group, $name, $value, $inserted, $updated) {
         $item = \DB::table('translations')
             ->where('locale', $locale)
             ->where('group', $group)
@@ -237,6 +224,9 @@ class FetchCommand extends Command {
                 'created_at' => date_create(),
             ]);
             \DB::table('translations')->insert($data);
+
+            $this->insertForEachDomainAndLocale($group, $name);
+
             $inserted++;
             return array($inserted, $updated);
         } else {
@@ -246,12 +236,41 @@ class FetchCommand extends Command {
         }
     }
 
+    protected function insertForEachDomainAndLocale($group, $name) {
+        $translations = \DB::table('translations')
+            ->where('domain_id', '!=', 0);
+        $domainIds = $translations->groupBy('domain_id')
+            ->lists('domain_id');
+        $data = [];
+        $data['group'] = $group;
+        $data['name'] = $name;
+        $data['updated_at'] = date_create();
+        $data['created_at'] = date_create();
+
+        foreach ($domainIds as $domainId) {
+            $data['domain_id'] = $domainId;
+            $locales = \DB::table('translations')->where('domain_id', $domainId)
+                ->groupBy('locale')
+                ->lists('locale');
+            foreach ($locales as $locale) {
+                if(
+                    \DB::table('translations')
+                    ->where('domain_id', $domainId)
+                    ->where('locale', $locale)->count() > 0
+                ) {
+                    $data['locale'] = $locale;
+                    $translations->insert($data);
+                }
+
+            }
+        }
+    }
+
     /**
      * @param $locale
      * @param $group
      */
-    protected function storeGroup($locale, $group)
-    {
+    protected function storeGroup($locale, $group) {
         $keys = require $this->lang_path . "/{$locale}/{$group}.php";
         $keys = $this->flattenArray($keys);
 

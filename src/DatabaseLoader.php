@@ -23,11 +23,14 @@ class DatabaseLoader implements LoaderInterface {
      */
     public function load($locale, $group, $namespace = null)
     {
-        return \DB::table('translations')
+        $result = \DB::table('translations')
             ->where('locale', $locale)
             ->where('group', $group)
             ->where('domain_id', $this->domain_id)
             ->lists('value', 'name');
+
+        $result = $this->replaceNullValues($result, $group);
+        return $result;
     }
 
     /**
@@ -86,5 +89,19 @@ class DatabaseLoader implements LoaderInterface {
                 \DB::table('translations')->where('id', $item->id)->update($data);
             }
         }
+    }
+
+    protected function replaceNullValues($results, $group) {
+        foreach ($results as $name => $value) {
+            if($value == "" || $value == null) {
+                $results[$name] = \DB::table('translations')
+                    ->select('value')
+                    ->where('group', $group)
+                    ->where('name', $name)
+                    ->where('locale', 'default')
+                    ->first()->value;
+            }
+        }
+        return $results;
     }
 }

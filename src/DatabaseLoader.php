@@ -56,9 +56,7 @@ class DatabaseLoader implements LoaderInterface {
      * @param string $name
      * @return void
      */
-    public function addTranslation($locale, $group, $key)
-    {
-        $domain_id = $this->domain_id;
+    public function addTranslation($locale, $group, $key) {
         if(!\Config::get('app.debug') || \Config::get('translation-db.minimal')) return;
 
         // Extract the real key from the translation.
@@ -68,26 +66,38 @@ class DatabaseLoader implements LoaderInterface {
             throw new TranslationException('Could not extract key from translation.');
         }
 
-        $item = \DB::table('translations')
-            ->where('locale', $locale)
-            ->where('group', $group)
-            ->where('domain_id', $this->domain_id)
-            ->where('name', $name)->first();
+        $domainIdsWithName = \DB::table('translations')
+            ->where('name', $name)
+            ->groupBy('domain_id')
+            ->lists('domain_id');
+        $domainIds = \DB::table('translations')
+            ->whereNotIn('domain_id', $domainIdsWithName)
+            ->groupBy('domain_id')
+            ->lists('domain_id');
 
-        $data = compact('locale', 'group', 'name', 'domain_id');
-        $data = array_merge($data, [
-            'viewed_at' => date_create(),
-            'updated_at' => date_create(),
-        ]);
+        foreach ($domainIds as $domainId) {
+            $locales = \DB::table('translations')
+                ->where('domain_id', $domainId)
+                ->groupBy('locale')
+                ->lists('locale');
 
-        if($item === null) {
-            $data = array_merge($data, [
-                'created_at' => date_create(),
-            ]);
-            \DB::table('translations')->insert($data);
-        } else {
-            if($this->_app['config']->get('translation-db.update_viewed_at')) {
-                \DB::table('translations')->where('id', $item->id)->update($data);
+            foreach ($locales as $listLocale) {
+                $data = compact('group', 'name');
+                $data['domain_id'] = $domainId;
+                $data['locale'] = $listLocale;
+                $data['viewed_at'] = date_create();
+                $data['updated_at'] = date_create();
+                $data['created_at'] = date_create();
+
+                \DB::table('translations')->insert($data);
+            }
+        }
+
+        if ($this->_app['config']->get('translation-db.update_viewed_at')) {
+            foreach ($domainIdsWithName as $domainId) {
+                $data = [];
+                $data['viewed_at'] = date_create();
+                \DB::table('translations')->where('domain_id', $domainId)->where('group', $group)->where('name', $name)->update($data);
             }
         }
     }

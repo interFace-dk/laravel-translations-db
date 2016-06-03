@@ -28,8 +28,9 @@ class DatabaseLoader implements LoaderInterface {
             ->where('group', $group)
             ->where('domain_id', $this->domain_id)
             ->lists('value', 'name');
-
-        $result = $this->replaceNullValues($result, $group);
+        if($this->domain_id > 0) {
+            $result = $this->replaceNullValues($result, $group);
+        }
         return $result;
     }
 

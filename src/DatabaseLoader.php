@@ -94,12 +94,13 @@ class DatabaseLoader implements LoaderInterface {
     protected function replaceNullValues($results, $group) {
         foreach ($results as $name => $value) {
             if($value == "" || $value == null) {
-                $results[$name] = \DB::table('translations')
+                $query = \DB::table('translations')
                     ->select('value')
                     ->where('group', $group)
                     ->where('name', $name)
                     ->where('locale', 'default')
-                    ->first()->value;
+                    ->first();
+                $results[$name] = ($query != null) ? $query->value : '';
             }
         }
         return $results;

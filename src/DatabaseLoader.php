@@ -28,7 +28,7 @@ class DatabaseLoader implements LoaderInterface {
             ->where('group', $group)
             ->where('domain_id', $this->domain_id)
             ->lists('value', 'name');
-        if($this->domain_id > 0) {
+        if($this->domain_id != null) {
             $result = $this->replaceNullValues($result, $group);
         }
         return $result;
@@ -103,15 +103,22 @@ class DatabaseLoader implements LoaderInterface {
     }
 
     protected function replaceNullValues($results, $group) {
-        foreach ($results as $name => $value) {
-            if($value == "" || $value == null) {
-                $query = \DB::table('translations')
-                    ->select('value')
-                    ->where('group', $group)
-                    ->where('name', $name)
-                    ->where('locale', 'default')
-                    ->first();
-                $results[$name] = ($query != null) ? $query->value : '';
+        if(count($results) <= 0) {
+            $results = \DB::table('translations')
+                ->where('group', $group)
+                ->where('locale', 'default')
+                ->lists('value', 'name');
+        }else {
+            foreach ($results as $name => $value) {
+                if ($value == "" || $value == null) {
+                    $query = \DB::table('translations')
+                        ->select('value')
+                        ->where('group', $group)
+                        ->where('name', $name)
+                        ->where('locale', 'default')
+                        ->first();
+                    $results[$name] = ($query != null) ? $query->value : '';
+                }
             }
         }
         return $results;

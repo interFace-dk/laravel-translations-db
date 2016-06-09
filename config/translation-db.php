@@ -51,6 +51,12 @@ return [
      * User either integer or function calls
      */
 
-    'get_domain' => function() { return 0;}
+    'get_domain' => function() { return null;},
+
+    /**
+     * Choose what translation folder that should be default
+     */
+
+    'default_translation' => 'en'
 
 ];

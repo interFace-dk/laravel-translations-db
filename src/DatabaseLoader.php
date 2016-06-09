@@ -106,7 +106,7 @@ class DatabaseLoader implements LoaderInterface {
         if(count($results) <= 0) {
             $results = \DB::table('translations')
                 ->where('group', $group)
-                ->where('locale', 'default')
+                ->where('locale', $this->_app['config']->get('translation-db.default_translation'))
                 ->lists('value', 'name');
         }else {
             foreach ($results as $name => $value) {
@@ -115,7 +115,7 @@ class DatabaseLoader implements LoaderInterface {
                         ->select('value')
                         ->where('group', $group)
                         ->where('name', $name)
-                        ->where('locale', 'default')
+                        ->where('locale', $this->_app['config']->get('translation-db.default_translation'))
                         ->first();
                     $results[$name] = ($query != null) ? $query->value : '';
                 }

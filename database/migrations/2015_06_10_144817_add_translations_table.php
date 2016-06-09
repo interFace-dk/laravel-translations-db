@@ -16,7 +16,7 @@ class AddTranslationsTable extends Migration {
 		{
 			$table->increments('id');
 			$table->string('locale');
-			$table->integer('domain_id')->default(0)->nullable();
+			$table->integer('domain_id')->nullable();
 			$table->string('group');
 			$table->string('name');
 			$table->text('value')->nullable();

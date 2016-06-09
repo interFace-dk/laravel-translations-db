@@ -238,7 +238,7 @@ class FetchCommand extends Command {
 
     protected function insertForEachDomainAndLocale($group, $name) {
         $translations = \DB::table('translations')
-            ->where('domain_id', '!=', 0);
+            ->whereNotNull('domain_id');
         $domainIds = $translations->groupBy('domain_id')
             ->lists('domain_id');
         $data = [];

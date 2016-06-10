@@ -29,7 +29,7 @@ class DatabaseLoader implements LoaderInterface {
             ->where('domain_id', $this->domain_id)
             ->lists('value', 'name');
         if($this->domain_id != null) {
-            $result = $this->replaceNullValues($result, $group);
+            $result = $this->replaceNullValues($result, $group, $locale);
         }
         return $result;
     }
@@ -102,12 +102,18 @@ class DatabaseLoader implements LoaderInterface {
         }
     }
 
-    protected function replaceNullValues($results, $group) {
+    protected function replaceNullValues($results, $group, $locale) {
+        $default = $this->_app['config']->get('translation-db.default_translation');
         if(count($results) <= 0) {
+            $localization = ($locale == $this->_app['config']->get('app.fallback_locale')) ? $default : $locale;
             $results = \DB::table('translations')
                 ->where('group', $group)
-                ->where('locale', $this->_app['config']->get('translation-db.default_translation'))
+                ->where('locale', $localization)
                 ->lists('value', 'name');
+
+            if($this->domain_id != null && $localization != $default) {
+                $results = $this->replaceNullValues($results, $group, $locale);
+            }
         }else {
             foreach ($results as $name => $value) {
                 if ($value == "" || $value == null) {
@@ -115,7 +121,7 @@ class DatabaseLoader implements LoaderInterface {
                         ->select('value')
                         ->where('group', $group)
                         ->where('name', $name)
-                        ->where('locale', $this->_app['config']->get('translation-db.default_translation'))
+                        ->where('locale', $default)
                         ->first();
                     $results[$name] = ($query != null) ? $query->value : '';
                 }

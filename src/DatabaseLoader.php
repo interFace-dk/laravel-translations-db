@@ -104,15 +104,19 @@ class DatabaseLoader implements LoaderInterface {
 
     protected function replaceNullValues($results, $group, $locale) {
         $default = $this->_app['config']->get('translation-db.default_translation');
+        $fallback = $this->_app['config']->get('app.fallback_locale');
+
         if(count($results) <= 0) {
-            $localization = ($locale == $this->_app['config']->get('app.fallback_locale')) ? $default : $locale;
+            $localization = ($locale == $fallback) ? $default : $fallback;
+
             $results = \DB::table('translations')
                 ->where('group', $group)
                 ->where('locale', $localization)
+                ->where('domain_id', $this->domain_id)
                 ->lists('value', 'name');
 
             if($this->domain_id != null && $localization != $default) {
-                $results = $this->replaceNullValues($results, $group, $locale);
+                $results = $this->replaceNullValues($results, $group, $localization);
             }
         }else {
             foreach ($results as $name => $value) {

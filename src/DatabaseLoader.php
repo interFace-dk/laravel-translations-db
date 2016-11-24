@@ -27,7 +27,7 @@ class DatabaseLoader implements LoaderInterface {
             ->where('locale', $locale)
             ->where('group', $group)
             ->where('domain_id', $this->domain_id)
-            ->lists('value', 'name');
+            ->pluck('value', 'name');
         if($this->domain_id != null) {
             $result = $this->replaceNullValues($result, $group, $locale);
         }
@@ -69,17 +69,17 @@ class DatabaseLoader implements LoaderInterface {
         $domainIdsWithName = \DB::table('translations')
             ->where('name', $name)
             ->groupBy('domain_id')
-            ->lists('domain_id');
+            ->pluck('domain_id');
         $domainIds = \DB::table('translations')
             ->whereNotIn('domain_id', $domainIdsWithName)
             ->groupBy('domain_id')
-            ->lists('domain_id');
+            ->pluck('domain_id');
 
         foreach ($domainIds as $domainId) {
             $locales = \DB::table('translations')
                 ->where('domain_id', $domainId)
                 ->groupBy('locale')
-                ->lists('locale');
+                ->pluck('locale');
 
             foreach ($locales as $listLocale) {
                 $data = compact('group', 'name');
@@ -113,7 +113,7 @@ class DatabaseLoader implements LoaderInterface {
                 ->where('group', $group)
                 ->where('locale', $localization)
                 ->where('domain_id', $this->domain_id)
-                ->lists('value', 'name');
+                ->pluck('value', 'name');
 
             if($this->domain_id != null && $localization != $default) {
                 $results = $this->replaceNullValues($results, $group, $localization);

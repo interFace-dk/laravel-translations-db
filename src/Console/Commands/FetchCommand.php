@@ -240,7 +240,7 @@ class FetchCommand extends Command {
         $translations = \DB::table('translations')
             ->whereNotNull('domain_id');
         $domainIds = $translations->groupBy('domain_id')
-            ->lists('domain_id');
+            ->pluck('domain_id');
         $data = [];
         $data['group'] = $group;
         $data['name'] = $name;
@@ -251,7 +251,7 @@ class FetchCommand extends Command {
             $data['domain_id'] = $domainId;
             $locales = \DB::table('translations')->where('domain_id', $domainId)
                 ->groupBy('locale')
-                ->lists('locale');
+                ->pluck('locale');
             foreach ($locales as $locale) {
                 if(
                     \DB::table('translations')

@@ -219,12 +219,11 @@ class FetchCommand extends Command {
             'updated_at' => date_create(),
         ]);
 
-        if ($item === null) {
+        if (empty($item)) {
             $data = array_merge($data, [
                 'created_at' => date_create(),
             ]);
             \DB::table('translations')->insert($data);
-
             $this->insertForEachDomainAndLocale($group, $name);
 
             $inserted++;
@@ -239,7 +238,8 @@ class FetchCommand extends Command {
     protected function insertForEachDomainAndLocale($group, $name) {
         $translations = \DB::table('translations')
             ->whereNotNull('domain_id');
-        $domainIds = $translations->groupBy('domain_id')
+        $domainIds = $translations
+            ->groupBy('domain_id')
             ->pluck('domain_id');
         $data = [];
         $data['group'] = $group;
@@ -249,19 +249,30 @@ class FetchCommand extends Command {
 
         foreach ($domainIds as $domainId) {
             $data['domain_id'] = $domainId;
-            $locales = \DB::table('translations')->where('domain_id', $domainId)
+            $locales = \DB::table('translations')
+                ->where('domain_id', $domainId)
                 ->groupBy('locale')
                 ->pluck('locale');
-            foreach ($locales as $locale) {
-                if(
-                    \DB::table('translations')
-                    ->where('domain_id', $domainId)
-                    ->where('locale', $locale)->count() > 0
-                ) {
-                    $data['locale'] = $locale;
-                    $translations->insert($data);
-                }
 
+            foreach ($locales as $locale) {
+                $domainLocaleCount = \DB::table('translations')
+                    ->where('domain_id', $domainId)
+                    ->where('locale', $locale)
+                    ->count();
+
+                if($domainLocaleCount > 0) { //If the domain isn't empty for translations
+                    $entity = \DB::table('translations')
+                        ->where('domain_id', $domainId)
+                        ->where('locale', $locale)
+                        ->where('group', $group)
+                        ->where('name', $name)
+                        ->count();
+
+                    if($entity == 0) { //Translation we're about to insert doesn't exist
+                        $data['locale'] = $locale;
+                        $translations->insert($data);
+                    }
+                }
             }
         }
     }

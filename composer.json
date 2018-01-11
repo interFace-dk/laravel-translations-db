@@ -14,7 +14,8 @@
     "illuminate/translation": "5.4.*",
     "illuminate/database": "5.4.*",
     "illuminate/cache": "5.4.*",
-    "stichoza/google-translate-php": "~3.1"
+    "stichoza/google-translate-php": "~3.1",
+    "illuminate/contracts": "5.4.*"
   },
 
   "autoload": {

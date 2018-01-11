@@ -1,5 +1,6 @@
 <?php namespace Hpolthof\Translation\Controllers;
 
+use Hpolthof\Translation\ServiceProvider;
 use Hpolthof\Translation\TranslationException;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -24,21 +25,23 @@ class TranslationsController extends Controller {
     }
 
     public function getGroups() {
-        return \DB::table('translations')
+        $query = \DB::table('translations')
             ->select('group')
             ->where('domain_id', $this->domain_id)
             ->distinct()
-            ->orderBy('group')
-            ->pluck('group');
+            ->orderBy('group');
+
+        return ServiceProvider::pluckOrLists($query, 'group');
     }
 
     public function getLocales() {
-        return \DB::table('translations')
+        $query = \DB::table('translations')
             ->select('locale')
             ->where('domain_id', $this->domain_id)
             ->distinct()
-            ->orderBy('locale')
-            ->pluck('locale');
+            ->orderBy('locale');
+
+        return ServiceProvider::pluckOrLists($query, 'locale');
     }
 
     public function postItems(Request $request) {
@@ -56,8 +59,9 @@ class TranslationsController extends Controller {
             ->where('locale', strtolower($request->get('translate')))
             ->where('group', $request->get('group'))
             ->where('domain_id', $this->domain_id)
-            ->orderBy('name')
-            ->pluck('value', 'name');
+            ->orderBy('name');
+
+        $new = ServiceProvider::pluckOrLists($new, 'value', 'name');
 
         foreach($base as &$item) {
             $translate = null;

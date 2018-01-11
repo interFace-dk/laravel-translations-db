@@ -2,9 +2,9 @@
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Translation\LoaderInterface;
-use Symfony\Component\Translation\TranslatorInterface;
+use Illuminate\Contracts\Translation\Translator as TranslatorContract;;
 
-class Translator extends \Illuminate\Translation\Translator implements TranslatorInterface {
+class Translator extends \Illuminate\Translation\Translator implements TranslatorContract {
 
 	protected $app = null;
 
@@ -36,18 +36,21 @@ class Translator extends \Illuminate\Translation\Translator implements Translato
 		// Here we will get the locale that should be used for the language line. If one
 		// was not passed, we will use the default locales which was given to us when
 		// the translator was instantiated. Then, we can load the lines and return.
-		foreach ($this->parseLocale($locale) as $locale)
+		foreach ($this->localeArray($locale) as $locale)
 		{
-			if(!self::isNamespaced($namespace)) {
-				// Database stuff
-				$this->database->addTranslation($locale, $group, $key);
-			}
-
 			$this->load($namespace, $group, $locale);
 
 			$line = $this->getLine(
 				$namespace, $group, $locale, $item, $replace
 			);
+
+			// If we cannot find the translation group in the database nor as a file
+			// an entry in the database will be added to the translations.
+			// Keep in mind that a file cannot be used from that point.
+			if(!self::isNamespaced($namespace) && is_null($line)) {
+				// Database stuff
+				$this->database->addTranslation($locale, $group, $key);
+			}
 
 			if ( ! is_null($line)) break;
 		}
@@ -72,14 +75,32 @@ class Translator extends \Illuminate\Translation\Translator implements Translato
 			if(!\Config::get('app.debug') || \Config::get('translation-db.minimal')) {
 				$that = $this;
 				$lines = \Cache::rememberForever('__translations.'.$locale.'.'.$group, function() use ($that, $locale, $group, $namespace) {
-					return $this->database->load($locale, $group, $namespace);
+					return $that->loadFromDatabase($namespace, $group, $locale);
 				});
 			} else {
-				$lines = $this->database->load($locale, $group, $namespace);
+				$lines = $this->loadFromDatabase($namespace, $group, $locale);
 			}
 		} else {
 			$lines = $this->loader->load($locale, $group, $namespace);
 		}
 		$this->loaded[$namespace][$group][$locale] = $lines;
+	}
+
+	/**
+	 * @param $namespace
+	 * @param $group
+	 * @param $locale
+	 * @return array
+	 */
+	protected function loadFromDatabase($namespace, $group, $locale)
+	{
+		$lines = $this->database->load($locale, $group, $namespace);
+
+		if (count($lines) == 0 && \Config::get('translation-db.file_fallback', false)) {
+			$lines = $this->loader->load($locale, $group, $namespace);
+			return $lines;
+		}
+
+		return $lines;
 	}
 }

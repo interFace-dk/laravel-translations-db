@@ -57,6 +57,15 @@ return [
      * Choose what translation folder that should be default
      */
 
-    'default_translation' => 'en'
+    'default_translation' => 'en',
+
+    /**
+     *  Use locales from files as a fallback option. Be aware that
+     * locales are loaded as groups. When just one locale of a group
+     * exists in the database, a file will never be used.
+     * To use some files, keep these groups fully out of your database.
+     */
+
+    'file_fallback' => false,
 
 ];

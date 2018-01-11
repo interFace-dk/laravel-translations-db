@@ -102,6 +102,8 @@ class DatabaseLoader implements LoaderInterface {
         }
     }
 
+    public function namespaces() {}
+
     protected function replaceNullValues($results, $group, $locale) {
         $default = $this->_app['config']->get('translation-db.default_translation');
         $fallback = $this->_app['config']->get('app.fallback_locale');

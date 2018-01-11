@@ -36,7 +36,7 @@ class Translator extends \Illuminate\Translation\Translator implements Translato
 		// Here we will get the locale that should be used for the language line. If one
 		// was not passed, we will use the default locales which was given to us when
 		// the translator was instantiated. Then, we can load the lines and return.
-		foreach ($this->parseLocale($locale) as $locale)
+		foreach ($this->localeArray($locale) as $locale)
 		{
 			$this->load($namespace, $group, $locale);
 

@@ -26,6 +26,10 @@ class DatabaseLoader implements LoaderInterface {
         $result = \DB::table('translations')
             ->where('locale', $locale)
             ->where('group', $group)
+            ->where(function ($q) {
+                return $q->where('domain_id', null)
+                    ->orWhere('domain_id', $this->domain_id);
+            })
             ->orderBy('domain_id', 'desc')
             ->pluck('value', 'name')
             ->toArray();

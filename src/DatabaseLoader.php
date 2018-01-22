@@ -26,11 +26,18 @@ class DatabaseLoader implements LoaderInterface {
         $result = \DB::table('translations')
             ->where('locale', $locale)
             ->where('group', $group)
-            ->where('domain_id', $this->domain_id)
-            ->pluck('value', 'name');
-        if($this->domain_id != null) {
+            ->where(function ($q) {
+                return $q->where('domain_id', null)
+                    ->orWhere('domain_id', $this->domain_id);
+            })
+            ->orderBy('domain_id', 'desc')
+            ->pluck('value', 'name')
+            ->toArray();
+
+        if(in_array(null, $result, false)) {
             $result = $this->replaceNullValues($result, $group, $locale);
         }
+
         return $result;
     }
 
@@ -104,33 +111,28 @@ class DatabaseLoader implements LoaderInterface {
 
     public function namespaces() {}
 
-    protected function replaceNullValues($results, $group, $locale) {
-        $default = $this->_app['config']->get('translation-db.default_translation');
-        $fallback = $this->_app['config']->get('app.fallback_locale');
+    /**
+     * Replace null values with their default value
+     * @param array $results
+     * @param string $group
+     * @param string $locale
+     * @return array
+     */
+    protected function replaceNullValues(array $results = [], $group, $locale) {
+        $filteredResults = array_filter($results, function ($v, $k) {
+            return $v == null;
+        }, ARRAY_FILTER_USE_BOTH);
 
-        if(count($results) <= 0) {
-            $localization = ($locale == $fallback) ? $default : $fallback;
-
-            $results = \DB::table('translations')
+        foreach ($filteredResults as $key => $value) {
+            $trans = \DB::table('translations')
+                ->select('value')
                 ->where('group', $group)
-                ->where('locale', $localization)
-                ->where('domain_id', $this->domain_id)
-                ->pluck('value', 'name');
+                ->where('locale', $locale)
+                ->where('domain_id', null)
+                ->first();
 
-            if($this->domain_id != null && $localization != $default) {
-                $results = $this->replaceNullValues($results, $group, $localization);
-            }
-        }else {
-            foreach ($results as $name => $value) {
-                if ($value == "" || $value == null) {
-                    $query = \DB::table('translations')
-                        ->select('value')
-                        ->where('group', $group)
-                        ->where('name', $name)
-                        ->where('locale', $default)
-                        ->first();
-                    $results[$name] = ($query != null) ? $query->value : '';
-                }
+            if(!empty($trans)) {
+                $results[$key] = $trans->value;
             }
         }
         return $results;

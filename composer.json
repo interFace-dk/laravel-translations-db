@@ -11,11 +11,11 @@
   ],
   "require": {
     "php": ">=5.6.0",
-    "illuminate/translation": "5.4.*",
-    "illuminate/database": "5.4.*",
-    "illuminate/cache": "5.4.*",
+    "illuminate/translation": "5.5.*",
+    "illuminate/database": "5.5.*",
+    "illuminate/cache": "5.5.*",
     "stichoza/google-translate-php": "~3.1",
-    "illuminate/contracts": "5.4.*"
+    "illuminate/contracts": "5.5.*"
   },
 
   "autoload": {

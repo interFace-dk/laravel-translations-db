@@ -1,9 +1,9 @@
 <?php namespace Hpolthof\Translation;
 
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Translation\LoaderInterface;
+use Illuminate\Contracts\Translation\Loader;
 
-class DatabaseLoader implements LoaderInterface {
+class DatabaseLoader implements Loader {
 
     protected $_app = null, $domain_id;
 
@@ -110,6 +110,7 @@ class DatabaseLoader implements LoaderInterface {
     }
 
     public function namespaces() {}
+    public function addJsonPath($path) {}
 
     /**
      * Replace null values with their default value

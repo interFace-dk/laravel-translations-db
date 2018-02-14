@@ -28,7 +28,7 @@ class DumpCommand extends Command {
 	 *
 	 * @return mixed
 	 */
-	public function fire()
+	public function handle()
 	{
 		$query = \DB::table('translations')->select('locale', 'group', 'name', 'value');
 		$this->addOptionToQuery($query, 'locale');

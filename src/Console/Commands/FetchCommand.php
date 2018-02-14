@@ -37,7 +37,7 @@ class FetchCommand extends Command {
      *
      * @return mixed
      */
-    public function fire() {
+    public function handle() {
         if(!$this->validate()) return false;
 
         $locales = $this->usableLocales();

@@ -211,6 +211,7 @@ class FetchCommand extends Command {
      */
     protected function storeTranslation($locale, $group, $name, $value, $inserted, $updated) {
         $item = \DB::table('translations')
+            ->whereNull('domain_id')
             ->where('locale', $locale)
             ->where('group', $group)
             ->where('name', $name)->first();

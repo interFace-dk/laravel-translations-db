@@ -32,7 +32,7 @@ class Translator extends \Illuminate\Translation\Translator implements Translato
 	public function get($key, array $replace = array(), $locale = null, $fallback = true)
 	{
 		list($namespace, $group, $item) = $this->parseKey($key);
-
+        $namespace .= '.' . ServiceProvider::getDomainId($this->app);
 		// Here we will get the locale that should be used for the language line. If one
 		// was not passed, we will use the default locales which was given to us when
 		// the translator was instantiated. Then, we can load the lines and return.
@@ -66,11 +66,9 @@ class Translator extends \Illuminate\Translation\Translator implements Translato
 	public function load($namespace, $group, $locale)
 	{
 		if ($this->isLoaded($namespace, $group, $locale)) return;
+        $lines = $this->loader->load($locale, $group, $namespace);
 
-		// If a Namespace is give the Filesystem will be used
-		// otherwise we'll use our database.
-		// This will allow legacy support.
-		if(!self::isNamespaced($namespace)) {
+		if(empty($lines)) {
 			// If debug is off then cache the result forever to ensure high performance.
 			if(!\Config::get('app.debug') || \Config::get('translation-db.minimal')) {
 				$that = $this;
@@ -80,8 +78,6 @@ class Translator extends \Illuminate\Translation\Translator implements Translato
 			} else {
 				$lines = $this->loadFromDatabase($namespace, $group, $locale);
 			}
-		} else {
-			$lines = $this->loader->load($locale, $group, $namespace);
 		}
 		$this->loaded[$namespace][$group][$locale] = $lines;
 	}
@@ -96,9 +92,8 @@ class Translator extends \Illuminate\Translation\Translator implements Translato
 	{
 		$lines = $this->database->load($locale, $group, $namespace);
 
-		if (count($lines) == 0 && \Config::get('translation-db.file_fallback', false)) {
-			$lines = $this->loader->load($locale, $group, $namespace);
-			return $lines;
+		if (empty($lines) && \Config::get('translation-db.file_fallback', false)) {
+			return $this->loader->load($locale, $group, $namespace);
 		}
 
 		return $lines;
